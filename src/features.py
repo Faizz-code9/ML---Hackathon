@@ -237,6 +237,10 @@ def build_dataset(trips_dir, split='training'):
     """
     Scan trips_dir for all trips, build feature rows.
     Returns X (features), y (labels), groups (trip_id per row).
+
+    Supports two layouts:
+      (a) data/training/00000001/00000001.track   ← actual dataset layout
+      (b) data/training/00000001/*.track          ← generic layout
     """
     all_rows = []
     trip_dirs = sorted([d for d in os.listdir(trips_dir)
@@ -244,9 +248,10 @@ def build_dataset(trips_dir, split='training'):
 
     for trip_id, trip_name in enumerate(trip_dirs):
         trip_path = os.path.join(trips_dir, trip_name)
+        # Support named files: e.g. 00000001.track inside 00000001/
         track_files = glob(os.path.join(trip_path, '*.track'))
-        node_files = glob(os.path.join(trip_path, '*.nodes'))
-        arc_files = glob(os.path.join(trip_path, '*.arcs'))
+        node_files  = glob(os.path.join(trip_path, '*.nodes'))
+        arc_files   = glob(os.path.join(trip_path, '*.arcs'))
         route_files = glob(os.path.join(trip_path, '*.route'))
 
         if not (track_files and node_files and arc_files):
