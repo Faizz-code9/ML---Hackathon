@@ -39,8 +39,9 @@ models/*.h5
 models/*.pt
 models/*.bin
 
-# --- Folium map HTMLs (auto-generated) ---
+# --- Folium map HTMLs (auto-generated, except report map deliverable) ---
 maps/
+!report/maps/
 
 # --- OS ---
 .DS_Store
