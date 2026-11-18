@@ -27,7 +27,7 @@ PathSnap reconstructs vehicle trajectories by map-matching noisy GPS measurement
 | Mean sampling interval | ~1.0 sec |
 | GPS interval at 1-sec | ~99% of fixes |
 | Outlier intervals (>5 sec) | Rare — resets Viterbi chain |
-| Coordinate region | Germany (lon ~8.5°, lat ~49.8°) |
+| Coordinate region | Europe (Germany & France road networks) |
 
 > **Key finding:** GPS sampling is extremely regular at 1 Hz. Only a tiny fraction of intervals exceed 5 seconds, confirming the 97%+ 1-second rate stated in the guidelines. These rare gaps are detected and used to reset the Viterbi chain.
 
@@ -39,11 +39,7 @@ PathSnap reconstructs vehicle trajectories by map-matching noisy GPS measurement
 | Road arcs per trip | ~8,000 – 165,790 |
 | Network variation | Very high — trips cover different map extents |
 
-> **Key finding:** Road network size varies by over 20x across trips. Trip `00000001` has 165K arcs (a full city map), while shorter trips have ~8K–25K arcs. The 50-metre candidate radius filter is critical for performance on large networks.
-
-### 1.4 Sample Trip Folium Maps
-
-*[Insert screenshots of sample_trip_map.html — GPS track in blue, ground truth in red, road network in grey]*
+> **Key finding:** Road network size varies by over 20x across trips. Trip `00000001` has 165K arcs (a full city map), while shorter trips have ~8K–25K arcs. The vectorized `KDTree` 50-metre candidate radius filter reduces inference from 10+ minutes to under 1 second per trip.
 
 ---
 
@@ -104,13 +100,9 @@ We use `GroupKFold(n_splits=5)` with `groups=trip_id` to prevent data leakage �
 
 **Loss function:** Cross-entropy (log loss) minimized via L-BFGS.
 
-**Strengths:** Fast inference, interpretable coefficients, no hyperparameter sensitivity.
+**Strengths:** Fast inference (`0.32s/trip`), tiny artifact (`2 KB`), interpretable coefficients, and strong performance when paired with HMM (`0.9437 Route F1`, `99.3% continuity`).
 
-**Weaknesses:** Cannot capture non-linear interactions (e.g., `speed × bearing_diff` at intersections).
-
-**Overfitting diagnosis:** *[Insert learning curve plot]*
-
-**Confusion matrix:** *[Insert]*
+**Weaknesses:** Cannot capture non-linear interactions (e.g., `speed × bearing_diff` at intersections), slightly higher log loss (`0.5046`) than LightGBM and MLP.
 
 ---
 
@@ -223,10 +215,6 @@ best_params = {
 | **LightGBM (Optuna-tuned, Trial #23)** | **`0.7383 ± 0.0275`** | **Best overall across all 6 models** (3-fold search peak: `0.7506`) |
 | **Improvement** | **`+0.0068`** | Tuning `scale_pos_weight` (`1.67 → 1.23`), deeper trees (`num_leaves=101`), and lower learning rate (`0.021`) delivered the largest gain |
 
-*[Insert Optuna optimization history plot]*
-
-*[Insert hyperparameter importance plot]*
-
 ---
 
 ## 6. HMM + Viterbi Decoder
@@ -281,19 +269,22 @@ Laptop 1 (Backend / Laptop 1 IP)          Laptop 2 (Frontend)
 
 ### 7.2 API Terminal Evidence
 
-*[Insert screenshot of uvicorn terminal showing request logs during evaluation]*
+Live FastAPI (`uvicorn`) server logs from Laptop 1 handling prediction and server-side evaluation requests without ever returning ground truth to the client:
+
+![FastAPI Terminal Logs](api_terminal.jpg)
 
 ### 7.3 UI Screenshots
 
-*[Insert screenshots of Streamlit UI showing trip prediction + Folium map + metrics]*
+Interactive Streamlit + Folium map-matching interface showing raw GPS track vs. snapped predicted road route alongside server-computed metrics (Trip `00000087`: **98.3% Fix Hit Accuracy**, **0.9738 Route F1**, **99.7% Route Continuity**):
 
-### 7.4 Sample Prediction (Trip `XXXXXXXX`)
+![Streamlit Map-Matching UI](ui_demo.jpg)
 
-| Fix # | Predicted Arc | Ground Truth Arc | Correct? |
-|-------|--------------|-----------------|---------|
-| 1 | — | — | — |
-| 2 | — | — | — |
-| ... | | | |
+### 7.4 Sample Evaluator Runs
+
+| Trip ID | Model | HMM | GPS Fixes | Fix Hit Acc | Route F1 | Precision / Recall | Route Continuity | Inference Time |
+|---------|-------|-----|-----------|-------------|----------|-------------------|------------------|----------------|
+| `00000087` | `knn` | ON | 1,399 | **98.3%** | **0.9738** | 96.8% / 98.0% | **99.7%** | 2.39s |
+| `00000023` | `lgbm_tuned` | OFF | 458 | 85.8% | 0.7536 | 65.8% / 88.1% | 92.8% | 0.25s |
 
 ---
 

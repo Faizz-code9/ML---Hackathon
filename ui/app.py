@@ -137,32 +137,37 @@ if pred_resp:
 
         m = folium.Map(location=[center_lat, center_lon], zoom_start=14, tiles="OpenStreetMap")
 
-        # GPS track (blue)
+        # GPS track layer (blue halo so it remains visible behind the red route)
         if gps_coords:
+            gps_layer = folium.FeatureGroup(name="🔵 Raw GPS Track", show=True)
             gps_latlon = [[c[1], c[0]] for c in gps_coords]
             folium.PolyLine(
                 locations=gps_latlon,
-                color="#1f77b4", weight=3, opacity=0.7,
+                color="#0077ff", weight=7, opacity=0.45,
                 tooltip="Raw GPS Track",
-            ).add_to(m)
+            ).add_to(gps_layer)
             folium.Marker(
                 gps_latlon[0],
                 popup="Start", icon=folium.Icon(color="green", icon="play"),
-            ).add_to(m)
+            ).add_to(gps_layer)
             folium.Marker(
                 gps_latlon[-1],
                 popup="End", icon=folium.Icon(color="red", icon="stop"),
-            ).add_to(m)
+            ).add_to(gps_layer)
+            gps_layer.add_to(m)
             m.fit_bounds([[min(lats), min(lons)], [max(lats), max(lons)]])
 
-        # Predicted route (red)
+        # Predicted route layer (crisp red line on top)
         if pred_coords:
+            pred_layer = folium.FeatureGroup(name="🔴 Predicted Road Route", show=True)
             folium.PolyLine(
                 locations=[[c[1], c[0]] for c in pred_coords],
-                color="#e63946", weight=4, opacity=0.9,
+                color="#e63946", weight=3, opacity=0.95,
                 tooltip="Predicted Route (HMM)" if pred_resp.get("use_hmm") else "Predicted Route (Classifier Only)",
-            ).add_to(m)
+            ).add_to(pred_layer)
+            pred_layer.add_to(m)
 
+        folium.LayerControl(collapsed=False).add_to(m)
         components.html(m.get_root().render(), height=580, scrolling=False)
         st.caption("🔵 Blue = Raw GPS Track  |  🔴 Red = Predicted Road Route (Ground truth stays strictly server-side)")
 
