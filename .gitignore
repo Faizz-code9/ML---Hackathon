@@ -1,0 +1,63 @@
+# =============================================
+# PathSnap Hackathon — .gitignore
+# =============================================
+
+# --- Guideline PDFs (do not commit) ---
+Guilines/
+*.pdf
+
+# --- Dataset (large files, do not commit) ---
+data/
+*.zip
+*.tar.gz
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg
+*.egg-info/
+dist/
+build/
+*.so
+.env
+.venv
+env/
+venv/
+ENV/
+
+# --- Jupyter / Notebook ---
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# --- Model artifacts (use Kaggle output download instead) ---
+models/*.pkl
+models/*.joblib
+models/*.h5
+models/*.pt
+models/*.bin
+
+# --- Folium map HTMLs (auto-generated) ---
+maps/
+
+# --- OS ---
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# --- IDE ---
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# --- Logs ---
+*.log
+logs/
+
+# --- Temporary / scratch ---
+scratch/
+tmp/
+temp/

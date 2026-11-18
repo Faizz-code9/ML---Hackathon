@@ -1,0 +1,17 @@
+# PathSnap — Dependencies
+# Laptop 1 (Backend)
+fastapi
+uvicorn[standard]
+scikit-learn
+lightgbm
+xgboost
+optuna
+joblib
+networkx
+pandas
+numpy
+folium
+# Laptop 2 (Frontend)
+streamlit
+streamlit-folium
+requests
